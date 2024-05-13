@@ -1,11 +1,34 @@
-import { Injectable } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateUserDto) {
-    return 'This action adds a new auth';
+
+
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+   
+  ){}
+
+
+   async create(createAuthDto: CreateUserDto): Promise<User> {
+
+    try{
+        const newUser = new this.userModel(createAuthDto);
+
+    return await newUser.save();
+
+    }catch(err){
+      if(err.code === 11000){
+        throw new BadRequestException('Email already exists');
+      }
+    }
+
   }
 
   findAll() {
