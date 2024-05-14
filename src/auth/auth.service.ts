@@ -1,17 +1,17 @@
 /* eslint-disable no-var */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { BadRequestException, Body, Injectable, UnauthorizedException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import {LoginDto, CreateUserDto, RegisterDTO, UpdateAuthDto} from './dto/index';
+
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User } from './entities/user.entity';
 
 
 import * as bcrypt from 'bcryptjs';
-import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './interfaces/jwt-payload';
 import { JwtService } from '@nestjs/jwt';
+import { LoginResponse } from './interfaces/login-response';
 
 
 export interface UserReturn  {
@@ -67,7 +67,7 @@ export class AuthService {
 
   }
 
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body() loginDto: LoginDto): Promise<LoginResponse>{
 
     const { email, password } = loginDto;
 
@@ -94,14 +94,24 @@ export class AuthService {
     console.log(userReturn)
 
     return {
-      data: userReturn,
+      user: userReturn,
       token: this.getJwToken({ id: (userReturn._id).toString() })
     }
 
-    
-    // return loginDto;
-
   }
+
+
+  async register(@Body() registerDTO: RegisterDTO): Promise<LoginResponse> {
+    const  userRegister = await this.create(registerDTO);
+    
+
+    return {
+      user: userRegister,
+      token: this.getJwToken({ id: (userRegister._id).toString() })
+    }
+ 
+  }
+
 
   findAll() {
     return `This action returns all auth`;
