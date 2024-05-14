@@ -1,6 +1,6 @@
 /* eslint-disable no-var */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Body, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,6 +9,7 @@ import { User } from './entities/user.entity';
 
 
 import * as bcrypt from 'bcryptjs';
+import { LoginDto } from './dto/login.dto';
 
 
 export interface UserReturn  {
@@ -60,6 +61,42 @@ export class AuthService {
         throw new BadRequestException('Email already exists');
       }
     }
+
+  }
+
+  async login(@Body() loginDto: LoginDto) {
+
+    const { email, password } = loginDto;
+
+    //Verify if user exists with email in the database.
+    const user = await this.userModel.findOne({ email });
+
+    if(!user){
+      throw new UnauthorizedException('Invalid credentials -  Verify email or password');
+    }
+
+    if(!bcrypt.compareSync(password, user.password)){
+      throw new UnauthorizedException('Invalid credentials -  Verify email or password');
+    }
+
+    const userReturn: UserReturn = {
+      email: user.email,
+      username: user.name,
+      isActive: user.isActive,
+      roles: user.roles,
+      _id: user._id
+    } as UserReturn;
+    
+
+    console.log(userReturn)
+
+    return {
+      data: userReturn,
+      token: 'token-valido papa'
+    }
+
+    
+    // return loginDto;
 
   }
 
