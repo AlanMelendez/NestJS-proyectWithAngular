@@ -10,6 +10,8 @@ import { User } from './entities/user.entity';
 
 import * as bcrypt from 'bcryptjs';
 import { LoginDto } from './dto/login.dto';
+import { JwtPayload } from './interfaces/jwt-payload';
+import { JwtService } from '@nestjs/jwt';
 
 
 export interface UserReturn  {
@@ -27,6 +29,7 @@ export class AuthService {
 
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
+    private jwtService: JwtService
    
   ){}
 
@@ -92,7 +95,7 @@ export class AuthService {
 
     return {
       data: userReturn,
-      token: 'token-valido papa'
+      token: this.getJwToken({ id: (userReturn._id).toString() })
     }
 
     
@@ -114,5 +117,9 @@ export class AuthService {
 
   remove(id: number) {
     return `This action removes a #${id} auth`;
+  }
+  getJwToken(payload: JwtPayload){
+    const token =  this.jwtService.sign(payload);
+    return token;
   }
 }
